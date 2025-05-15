@@ -185,6 +185,20 @@
     - name: Apply sysctl settings immediately
       command: sysctl --system
 
+- name: Install local-path-provisioner and set as default
+  hosts: node1
+  become: yes
+  environment:
+    KUBECONFIG: /home/cc/.kube/config
+  tasks:
+    - name: Apply local-path-provisioner manifest
+      command: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+    - name: Set local-path as the default storage class
+      command: >
+        kubectl patch storageclass local-path
+        -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
 # - name: Reboot target node
 #   hosts: all
 #   become: yes
