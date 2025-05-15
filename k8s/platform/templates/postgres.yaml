@@ -1,5 +1,19 @@
 ---
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: chameleon-postgres-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: chameleon-block
+  hostPath:
+    path: /mnt/postgres-data
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
@@ -10,6 +24,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
+  storageClassName: chameleon-block
 ---
 apiVersion: apps/v1
 kind: Deployment

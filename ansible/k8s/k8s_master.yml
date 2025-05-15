@@ -28,7 +28,28 @@
         remote_src: yes
         owner: cc
 
+- name: Configure and apply Flannel
+  hosts: master
+  become: true
+  tasks:
     - name: Apply Flannel
-      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: Get specific interface used to reach
+      shell: ip -o addr show | awk -v ip="{{ ansible_host }}" '$0 ~ ip {print $2}'
+      register: iface_result
+      changed_when: false
+
+    - name: Show interface
+      debug:
+        msg: "Interface for {{ ansible_host }} is {{ iface_result.stdout }}"
+
+    - name: Patch Flannel to use interface
+      shell: |
+        kubectl -n kube-flannel patch daemonset kube-flannel-ds \
+          --type='json' \
+          -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--iface={{ iface_result.stdout }}"}]'
       environment:
         KUBECONFIG: /etc/kubernetes/admin.conf
