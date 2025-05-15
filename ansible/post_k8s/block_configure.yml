@@ -1,0 +1,50 @@
+---
+- name: Partition Chameleon block volume for MLflow stack
+  hosts: node1
+  become: yes
+  vars:
+    device_path: /dev/vdb
+    mount_point: /mnt/chameleon-block
+    subdirs:
+      - minio-data
+      - postgres-data
+
+  tasks:
+
+    - name: Ensure mount point exists
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Format block device if not already formatted
+      filesystem:
+        fstype: ext4
+        dev: "{{ device_path }}"
+      register: fs_result
+      when: device_path is defined
+
+    - name: Mount block device
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ device_path }}"
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Ensure mount persists in /etc/fstab
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ device_path }}"
+        fstype: ext4
+        opts: defaults
+        state: present
+
+    - name: Create subdirectories for MinIO and Postgres
+      file:
+        path: "{{ mount_point }}/{{ item }}"
+        state: directory
+        owner: 1000
+        group: 1000
+        mode: '0755'
+      loop: "{{ subdirs }}"

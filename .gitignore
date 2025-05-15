@@ -4,4 +4,4 @@ terraform.tfstate
 tf/kvm/.terraform.lock.hcl
 ansible/ansible.cfg
 tf/kvm/clouds.yaml
-secrets.yml
+.DS_Store

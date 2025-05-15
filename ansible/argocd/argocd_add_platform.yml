@@ -1,5 +1,5 @@
 ---
-- name: Deploy MLflow platform via ArgoCD & Helm
+- name: Deploy MLflow platform via ArgoCD & Helm with MinIO secret handling
   hosts: node1
   become: yes
   environment:
@@ -9,6 +9,7 @@
     repo_path: "https://github.com/gauravkuwar/mlsysops-cms-iac.git"
     app_name: "mlsysops-cms-platform"
     app_path: "k8s/platform"
+    minio_access_key: "your-access-key"
 
   tasks:
     - name: Get ArgoCD admin password from Kubernetes secret
@@ -48,6 +49,37 @@
       when: ns_check.rc != 0
       command: kubectl create namespace mlsysops-cms-platform
 
+    - name: Check if MinIO secret already exists
+      command: kubectl get secret minio-credentials -n mlsysops-cms-platform
+      register: minio_secret_check
+      failed_when: false
+      changed_when: false
+
+    - name: Generate MinIO secret key
+      when: minio_secret_check.rc != 0
+      set_fact:
+        minio_secret_key: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters,digits') }}"
+
+    - name: Create MinIO credentials secret
+      when: minio_secret_check.rc != 0
+      command: >
+        kubectl create secret generic minio-credentials
+        --namespace mlsysops-cms-platform
+        --from-literal=accesskey={{ minio_access_key }}
+        --from-literal=secretkey={{ minio_secret_key }}
+      register: minio_secret_create
+
+    - name: Get existing MinIO secret key if already exists
+      when: minio_secret_check.rc == 0
+      command: >
+        kubectl get secret minio-credentials -n mlsysops-cms-platform -o jsonpath="{.data.secretkey}"
+      register: existing_secret_b64
+
+    - name: Decode existing MinIO secret key
+      when: minio_secret_check.rc == 0
+      set_fact:
+        minio_secret_key: "{{ existing_secret_b64.stdout | b64decode }}"
+
     - name: Check if ArgoCD application exists
       command: >
         argocd app get {{ app_name }} --port-forward --port-forward-namespace=argocd
@@ -63,6 +95,7 @@
         --path {{ app_path }} \
         --dest-server https://kubernetes.default.svc \
         --dest-namespace "" \
+        --helm-set-string minio.externalIP={{ external_ip }} \
         --helm-set-string mlflow.externalIP={{ external_ip }} \
         --port-forward --port-forward-namespace=argocd \
         --sync-policy automated --self-heal
@@ -73,6 +106,13 @@
       command: >
         argocd app set {{ app_name }} \
         --dest-namespace "" \
+        --helm-set-string minio.externalIP={{ external_ip }} \
         --helm-set-string mlflow.externalIP={{ external_ip }} \
         --port-forward --port-forward-namespace=argocd
       register: app_update
+
+    - name: Display MinIO credentials
+      debug:
+        msg: |
+          MinIO Access Key: {{ minio_access_key }}
+          MinIO Secret Key: {{ minio_secret_key }}
