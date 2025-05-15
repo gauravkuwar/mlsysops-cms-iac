@@ -50,6 +50,11 @@ spec:
                     operator: In
                     values:
                       - node1-mlops-project26-gk2657
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+          
       containers:
         - name: postgres
           image: postgres:latest
