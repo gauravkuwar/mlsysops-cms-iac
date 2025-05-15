@@ -7,7 +7,6 @@
     insecure_registry: "registry.kube-system.svc.cluster.local:5000"
 
   tasks:
-
     - name: Add user 'cc' to docker group
       user:
         name: cc
@@ -28,6 +27,7 @@
       debug:
         msg: "{{ cc_id.stdout }}"
 
+---
 - name: Configure DNS and Restart CoreDNS
   hosts: node1,node2,node3
   become: yes
@@ -44,6 +44,93 @@
     - name: Restart CoreDNS deployment
       command: kubectl -n kube-system rollout restart deployment coredns
 
+- name: Configure CoreDNS across all nodes
+  hosts: all
+  become: yes
+  environment:
+    KUBECONFIG: /home/cc/.kube/config
+  vars:
+    dns_search_domains: "openstacklocal"
+
+  tasks:
+    - name: Get CoreDNS ClusterIP (run only on master)
+      command: kubectl get svc -n kube-system kube-dns -o jsonpath='{.spec.clusterIP}'
+      register: coredns_ip_raw
+      delegate_to: node1
+      run_once: true
+
+    - name: Set CoreDNS IP as fact
+      set_fact:
+        coredns_ip: "{{ coredns_ip_raw.stdout }}"
+
+    - name: Disable systemd-resolved
+      systemd:
+        name: systemd-resolved
+        state: stopped
+        enabled: no
+
+    - name: Remove existing resolv.conf
+      file:
+        path: /etc/resolv.conf
+        state: absent
+        force: true
+
+    - name: Write custom resolv.conf
+      copy:
+        dest: /etc/resolv.conf
+        content: |
+          nameserver {{ coredns_ip }}
+          search {{ dns_search_domains }}
+        mode: '0644'
+
+---
+- name: Deploy local Docker registry (HTTP) to kube-system
+  hosts: master  # or localhost
+  become: yes
+  environment:
+    KUBECONFIG: /home/cc/.kube/config
+  tasks:
+
+    - name: Apply local registry pod and service
+      shell: |
+        cat <<EOF | kubectl apply -n kube-system -f -
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: registry
+          labels:
+            app: registry
+        spec:
+          containers:
+            - name: registry
+              image: registry:2.8.1
+              ports:
+                - containerPort: 5000
+              env:
+                - name: REGISTRY_HTTP_ADDR
+                  value: ":5000"
+              volumeMounts:
+                - name: registry-storage
+                  mountPath: /var/lib/registry
+          volumes:
+            - name: registry-storage
+              emptyDir: {}
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: registry
+        spec:
+          selector:
+            app: registry
+          ports:
+            - port: 5000
+              targetPort: 5000
+        EOF
+      args:
+        executable: /bin/bash
+
+---
 - name: Install ArgoCD CLI
   hosts: node1
   become: yes

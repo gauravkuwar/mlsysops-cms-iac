@@ -16,7 +16,7 @@
         regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
         replace: '# \1'
 
-- name: Install Docker using official GPG + keyrings method
+- name: Install containerd using official GPG + keyrings method
   hosts: all
   become: true
   tasks:
@@ -52,14 +52,10 @@
       apt:
         update_cache: yes
 
-    - name: Install Docker packages
+    - name: Install containerd
       apt:
         name:
-          - docker-ce
-          - docker-ce-cli
           - containerd.io
-          - docker-buildx-plugin
-          - docker-compose-plugin
         state: present
 
     - name: Create containerd directory
@@ -116,7 +112,6 @@
         name: kubelet
         enabled: yes
 
-    # NEW
     - name: Persist br_netfilter module
       copy:
         dest: /etc/modules-load.d/k8s.conf
