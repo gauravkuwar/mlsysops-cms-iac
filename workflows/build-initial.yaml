@@ -12,7 +12,7 @@ spec:
       resources:
         requests:
           storage: 1Gi
-          
+
   - metadata:
       name: workdir-train
     spec:
@@ -106,5 +106,5 @@ spec:
         - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
         - --insecure
       volumeMounts:
-      - name: workdir
+      - name: workdir-train
         mountPath: /mnt/workspace-train
