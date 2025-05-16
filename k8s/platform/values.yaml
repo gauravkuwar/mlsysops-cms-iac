@@ -24,4 +24,4 @@ train:
       memory: "512Mi"
 
   env:
-    mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:5000
+    mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
