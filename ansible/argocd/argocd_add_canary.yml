@@ -2,6 +2,8 @@
 - name: Deploy mlsysops-cms Canary via ArgoCD & Helm
   hosts: node1
   become: yes
+  environment:
+    KUBECONFIG: /home/cc/.kube/config
   vars:
     app_name: mlsysops-cms-canary
     repo_url: https://github.com/gauravkuwar/mlsysops-cms-iac.git

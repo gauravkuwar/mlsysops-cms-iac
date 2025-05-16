@@ -108,6 +108,7 @@
         --dest-namespace "" \
         --helm-set-string minio.externalIP={{ external_ip }} \
         --helm-set-string mlflow.externalIP={{ external_ip }} \
+        --helm-set-string train.service.externalIP={{ external_ip }} \
         --port-forward --port-forward-namespace=argocd
       register: app_update
 

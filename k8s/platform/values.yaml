@@ -3,3 +3,25 @@ minio:
 
 mlflow:
   externalIP: "0.0.0.0"
+
+train:
+  replicaCount: 1
+
+  image:
+    repository: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train
+    tag: latest
+
+  service:
+    port: 9090
+    externalIP: ""   # Placeholder
+
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+    requests:
+      cpu: "200m"
+      memory: "128Mi"
+
+  env:
+    mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:5000

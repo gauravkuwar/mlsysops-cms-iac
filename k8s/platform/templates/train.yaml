@@ -1,0 +1,42 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlsysops-cms-train
+  namespace: mlsysops-cms-platform
+
+spec:
+  replicas: {{ .Values.train.replicaCount }}
+  selector:
+    matchLabels:
+      app: mlsysops-cms-train
+  template:
+    metadata:
+      labels:
+        app: mlsysops-cms-train
+    spec:
+      containers:
+        - name: mlsysops-cms-train
+          image: {{ .Values.train.image.repository }}:{{ .Values.train.image.tag }}
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: {{ .Values.train.env.mlflowTrackingUri | quote }}
+          resources:
+            {{- toYaml .Values.train.resources | nindent 12 }}
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlsysops-cms-train
+  namespace: mlsysops-cms-platform
+spec:
+  selector:
+    app: mlsysops-cms-train
+  ports:
+    - port: {{ .Values.train.service.port }}
+      targetPort: 8000
+  externalIPs:
+    - {{ .Values.train.service.externalIP }}
