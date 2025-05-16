@@ -12,6 +12,14 @@ spec:
       resources:
         requests:
           storage: 1Gi
+          
+  - metadata:
+      name: workdir-train
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
 
   templates:
   - name: kaniko-build-flow
@@ -86,7 +94,7 @@ spec:
             exit 1
           fi
       volumeMounts:
-      - name: workdir
+      - name: workdir-train
         mountPath: /mnt/workspace-train
 
   - name: kaniko-train
