@@ -17,11 +17,11 @@ train:
 
   resources:
     limits:
-      cpu: "1000m"
-      memory: "1Gi"
+      cpu: "2000m"    # use both vCPUs
+      memory: "2Gi"   # safe for model + inference
     requests:
-      cpu: "500m"
-      memory: "512Mi"
+      cpu: "1500m"
+      memory: "1Gi"
 
   env:
     mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000

@@ -8,11 +8,10 @@ spec:
   - metadata:
       name: workdir
     spec:
-      accessModes: [ "ReadWriteOnce" ]
+      accessModes: ["ReadWriteOnce"]
       resources:
         requests:
           storage: 1Gi
-
   - metadata:
       name: workdir-train
     spec:
@@ -20,18 +19,25 @@ spec:
       resources:
         requests:
           storage: 1Gi
+  - metadata:
+      name: kaniko-cache
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 2Gi
 
   templates:
   - name: kaniko-build-flow
     steps:
-      - - name: clone-repo
-          template: git-clone
-      - - name: kaniko-build
-          template: kaniko
-      - - name: clone-train-repo
-          template: train-git-clone
-      - - name: kaniko-train-build
-          template: kaniko-train
+    - - name: clone-repo
+        template: git-clone
+    - - name: kaniko-build
+        template: kaniko
+    - - name: clone-train-repo
+        template: train-git-clone
+    - - name: kaniko-train-build
+        template: kaniko-train
 
   - name: git-clone
     container:
@@ -41,7 +47,6 @@ spec:
         - |
           MAX_RETRIES=5
           i=1
-
           while [ $i -le $MAX_RETRIES ]; do
             echo "Attempt $i of $MAX_RETRIES: Cloning repo..."
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-app.git /mnt/workspace && break
@@ -49,7 +54,6 @@ spec:
             i=$((i + 1))
             sleep 5
           done
-
           if [ ! -d /mnt/workspace/.git ]; then
             echo "Git clone failed after $MAX_RETRIES attempts."
             exit 1
@@ -68,9 +72,13 @@ spec:
         - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-1.0.0
         - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-1.0.0
         - --insecure
+        - --cache=true
+        - --cache-dir=/cache
       volumeMounts:
         - name: workdir
           mountPath: /mnt/workspace
+        - name: kaniko-cache
+          mountPath: /cache
 
   - name: train-git-clone
     container:
@@ -80,7 +88,6 @@ spec:
         - |
           MAX_RETRIES=5
           i=1
-
           while [ $i -le $MAX_RETRIES ]; do
             echo "Attempt $i of $MAX_RETRIES: Cloning training repo..."
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-train.git /mnt/workspace-train && break
@@ -88,7 +95,6 @@ spec:
             i=$((i + 1))
             sleep 5
           done
-
           if [ ! -d /mnt/workspace-train/.git ]; then
             echo "Git clone failed after $MAX_RETRIES attempts."
             exit 1
@@ -105,6 +111,10 @@ spec:
         - --context=/mnt/workspace-train
         - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
         - --insecure
+        - --cache=true
+        - --cache-dir=/cache
       volumeMounts:
-      - name: workdir-train
-        mountPath: /mnt/workspace-train
+        - name: workdir-train
+          mountPath: /mnt/workspace-train
+        - name: kaniko-cache
+          mountPath: /cache
