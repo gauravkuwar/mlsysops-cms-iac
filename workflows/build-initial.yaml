@@ -78,12 +78,11 @@ spec:
         args:
           - --dockerfile=/mnt/workspace-app/Dockerfile
           - --context=/mnt/workspace-app
-          - --snapshot-mode=time
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
-          - --cache=true
-          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          # - --cache=true
+          # - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --insecure
         volumeMounts:
           - name: workdir-app
@@ -103,7 +102,6 @@ spec:
         args:
           - --dockerfile=/mnt/workspace/train/Dockerfile
           - --context=/mnt/workspace/train
-          - --snapshot-mode=time
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
@@ -127,7 +125,6 @@ spec:
         args:
           - --dockerfile=/mnt/workspace/eval/Dockerfile
           - --context=/mnt/workspace/eval
-          - --snapshot-mode=time
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
@@ -150,7 +147,6 @@ spec:
         args:
           - --dockerfile=/mnt/workspace/data/Dockerfile
           - --context=/mnt/workspace/data
-          - --snapshot-mode=time
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
