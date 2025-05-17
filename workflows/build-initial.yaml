@@ -9,7 +9,7 @@ spec:
       emptyDir: {}
     - name: workdir-app
       emptyDir: {}
-      
+
   templates:
     - name: kaniko-dag
       parallelism: 8
@@ -44,6 +44,8 @@ spec:
             dependencies: [clone-pipeline-repo]
 
     - name: app-git-clone
+      nodeSelector:
+        kubernetes.io/hostname: node2-mlops-project26-gk2657
       container:
         image: alpine/git
         command: [sh, -c]
@@ -55,6 +57,8 @@ spec:
             mountPath: /mnt/workspace-app
 
     - name: pipeline-git-clone
+      nodeSelector:
+        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: alpine/git
         command: [sh, -c]
@@ -66,6 +70,8 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-app
+      nodeSelector:
+        kubernetes.io/hostname: node2-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
@@ -85,6 +91,8 @@ spec:
             mountPath: /mnt/workspace-app
 
     - name: kaniko-train
+      nodeSelector:
+        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
@@ -102,6 +110,8 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-eval
+      nodeSelector:
+          kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
@@ -119,6 +129,8 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-data
+      nodeSelector:
+          kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
@@ -136,6 +148,8 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-optimize
+      nodeSelector:
+        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
