@@ -10,6 +10,13 @@ spec:
       container:
         image: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
         command: ["python", "main.py"]
+        resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
         args:
           - --kaggle-dir
           - /mnt/data/kaggle
