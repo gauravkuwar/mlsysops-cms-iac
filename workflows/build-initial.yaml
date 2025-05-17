@@ -91,7 +91,14 @@ spec:
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
-
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+            
     - name: kaniko-train
       container:
         image: gcr.io/kaniko-project/executor:latest
@@ -106,6 +113,13 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
 
     - name: kaniko-eval
       container:
@@ -121,6 +135,13 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
 
     - name: kaniko-data
       container:
@@ -136,6 +157,13 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
 
     - name: kaniko-optimize
       container:
@@ -151,3 +179,10 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

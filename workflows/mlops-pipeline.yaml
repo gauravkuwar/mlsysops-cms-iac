@@ -52,3 +52,11 @@ spec:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
           effect: "NoSchedule"
+    
+    - name: optimize-task
+      container:
+        image: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+
