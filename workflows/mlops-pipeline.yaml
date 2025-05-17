@@ -28,3 +28,24 @@ spec:
         env:
           - name: MLFLOW_TRACKING_URI
             value: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+        volumeMounts:
+          - name: data-volume
+            mountPath: /mnt/data
+      volumes:
+        - name: data-volume
+          hostPath:
+            path: /mnt/chameleon-block/data
+            type: Directory
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - node1-mlops-project26-gk2657
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
