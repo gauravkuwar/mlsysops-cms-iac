@@ -8,10 +8,11 @@
     workflow_dir: workflows
     argo_namespace: argo
     templates:
-      - build-container-image.yaml
-      - deploy-container-image.yaml
-      - promote-model.yaml
-      - train-model.yaml
+      - mlops-pipeline.yaml
+      # - build-container-image.yaml
+      # - deploy-container-image.yaml
+      # - promote-model.yaml
+      # - train-model.yaml
 
   tasks:
     - name: Clone or update mlsysops-cms-iac repo

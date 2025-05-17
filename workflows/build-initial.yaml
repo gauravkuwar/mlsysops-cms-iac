@@ -149,7 +149,9 @@ spec:
           - --dockerfile=/mnt/workspace-app/Dockerfile
           - --context=/mnt/workspace-app
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:{{inputs.parameters.sha}}
-          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:latest
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
           - --insecure
         volumeMounts:
           - name: workdir-app

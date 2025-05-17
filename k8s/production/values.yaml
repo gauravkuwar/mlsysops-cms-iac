@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app
-  tag: production-1.0.0
+  tag: production-latest
 
 service:
   port: 80

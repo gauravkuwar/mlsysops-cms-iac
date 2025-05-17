@@ -8,6 +8,8 @@
     subdirs:
       - minio-data
       - postgres-data
+      - data/kaggle
+      - data/preprocessed
 
   tasks:
 
