@@ -16,6 +16,10 @@ spec:
             template: eval-task
             dependencies: [trigger-training]
 
+          - name: run-optimize
+            template: optimize-task
+            dependencies: [run-eval]
+
     - name: call-train-api
       container:
         image: curlimages/curl
