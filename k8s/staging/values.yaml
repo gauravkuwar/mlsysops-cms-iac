@@ -8,6 +8,10 @@ service:
   port: 8081
   externalIP: ""   # Placeholder
 
+env:
+  modelStage: development
+  mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+
 resources:
   requests:
     cpu: "500m"
