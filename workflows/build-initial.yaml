@@ -4,22 +4,12 @@ metadata:
   generateName: kaniko-pvc-build-
 spec:
   entrypoint: kaniko-dag
-  volumeClaimTemplates:
-    - metadata:
-        name: workdir
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
-    - metadata:
-        name: workdir-app
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
-
+  volumes:
+    - name: workdir
+      emptyDir: {}
+    - name: workdir-app
+      emptyDir: {}
+      
   templates:
     - name: kaniko-dag
       parallelism: 8
