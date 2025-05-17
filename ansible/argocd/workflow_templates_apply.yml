@@ -2,6 +2,8 @@
 - name: Clone repo and apply specific Argo WorkflowTemplates
   hosts: node1
   become: yes
+  environment:
+    KUBECONFIG: /home/cc/.kube/config
   vars:
     repo_url: https://github.com/gauravkuwar/mlsysops-cms-iac.git
     repo_dest: /tmp/mlsysops-cms-iac
@@ -15,6 +17,12 @@
       # - train-model.yaml
 
   tasks:
+    - name: Copy kaggle.json to shared volume for Argo
+      copy:
+        src: kaggle.json
+        dest: /mnt/chameleon-block/data/kaggle/kaggle.json
+        mode: '0600'
+
     - name: Clone or update mlsysops-cms-iac repo
       git:
         repo: "{{ repo_url }}"

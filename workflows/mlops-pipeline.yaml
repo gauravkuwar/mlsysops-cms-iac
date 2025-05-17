@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: mlops-pipeline-
+  name: mlops-pipeline
 spec:
   entrypoint: train-eval-flow
   templates:

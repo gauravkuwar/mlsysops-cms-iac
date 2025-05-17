@@ -5,3 +5,4 @@ tf/kvm/.terraform.lock.hcl
 ansible/ansible.cfg
 tf/kvm/clouds.yaml
 .DS_Store
+kaggle.json
