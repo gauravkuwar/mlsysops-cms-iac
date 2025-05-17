@@ -16,6 +16,7 @@ spec:
     spec:
       containers:
         - name: mlsysops-cms-app
+          imagePullPolicy: Always
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           ports:
             - containerPort: 8000
