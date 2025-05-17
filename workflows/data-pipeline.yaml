@@ -26,6 +26,9 @@ spec:
           - "0.1"
           - --eval-split
           - "0.01"
+        env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
         volumeMounts:
           - name: data-volume
             mountPath: /mnt/data
