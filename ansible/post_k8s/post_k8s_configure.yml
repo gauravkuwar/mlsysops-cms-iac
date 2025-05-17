@@ -26,21 +26,21 @@
 #       debug:
 #         msg: "{{ cc_id.stdout }}"
 
-- name: Configure DNS and Restart CoreDNS
-  hosts: node1,node2,node3
-  become: yes
-  tasks:
-    - name: Set DNS for interface ens4
-      command: resolvectl dns ens4 127.0.0.1
+# - name: Configure DNS and Restart CoreDNS
+#   hosts: node1,node2,node3
+#   become: yes
+#   tasks:
+#     - name: Set DNS for interface ens4
+#       command: resolvectl dns ens4 127.0.0.1
 
-- name: Restart CoreDNS on node1
-  hosts: node1
-  become: yes
-  environment:
-    KUBECONFIG: /home/cc/.kube/config
-  tasks:
-    - name: Restart CoreDNS deployment
-      command: kubectl -n kube-system rollout restart deployment coredns
+# - name: Restart CoreDNS on node1
+#   hosts: node1
+#   become: yes
+#   environment:
+#     KUBECONFIG: /home/cc/.kube/config
+#   tasks:
+#     - name: Restart CoreDNS deployment
+#       command: kubectl -n kube-system rollout restart deployment coredns
 
 - name: Configure CoreDNS resolv.conf across all nodes
   hosts: all
