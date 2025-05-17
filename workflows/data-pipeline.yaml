@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: jigsaw-data-prep
+  name: data-pipeline
   namespace: argo
 spec:
   entrypoint: preprocess
   templates:
     - name: preprocess
       container:
-        image: registry.kube-system.svc.cluster.local:5000/jigsaw-prep:latest
+        image: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
         command: ["python", "main.py"]
         args:
           - --kaggle-dir
