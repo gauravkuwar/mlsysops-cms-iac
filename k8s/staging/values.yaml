@@ -14,9 +14,9 @@ env:
 
 resources:
   requests:
-    cpu: "500m"
+    cpu: "250m"     # enough for startup and light inference
     memory: "512Mi"
   limits:
-    cpu: "1"
+    cpu: "750m"     # handles bursts without starving node
     memory: "1.5Gi"
 
