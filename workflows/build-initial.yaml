@@ -76,6 +76,22 @@ spec:
               parameters:
                 - name: sha
                   value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
+
+        - - name: check-data-image
+            template: check-image
+            arguments:
+              parameters:
+                - name: image
+                  value: "mlsysops-cms-data"
+                - name: sha
+                  value: "{{steps.clone-pipeline-repo.outputs.parameters.data-sha}}"
+        - - name: kaniko-build-data
+            template: kaniko-data
+            when: "{{steps.check-data-image.outputs.parameters.exists}} == false"
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{steps.clone-pipeline-repo.outputs.parameters.data-sha}}"
                   
     - name: check-image
       inputs:
@@ -135,6 +151,9 @@ spec:
           - name: eval-sha
             valueFrom:
               path: /mnt/workspace/eval/eval_sha.txt
+          - name: data-sha
+            valueFrom:
+              path: /mnt/workspace/data/data_sha.txt
       container:
         image: alpine/git
         command: [sh, -c]
@@ -143,6 +162,7 @@ spec:
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-pipeline.git /mnt/workspace
             cd /mnt/workspace/train && git log -n1 --pretty=format:%h . > train_sha.txt
             cd /mnt/workspace/eval && git log -n1 --pretty=format:%h . > eval_sha.txt
+            cd /mnt/workspace/data && git log -n1 --pretty=format:%h . > data_sha.txt
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
@@ -195,6 +215,23 @@ spec:
           - --context=/mnt/workspace/eval
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
+          - --insecure
+        volumeMounts:
+          - name: workdir
+            mountPath: /mnt/workspace
+
+    - name: kaniko-data
+      inputs:
+        parameters:
+          - name: sha
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace/data/Dockerfile
+          - --context=/mnt/workspace/data
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:{{inputs.parameters.sha}}
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --insecure
         volumeMounts:
           - name: workdir
