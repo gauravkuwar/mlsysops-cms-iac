@@ -87,6 +87,8 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
           - --insecure
         volumeMounts:
           - name: workdir-app
@@ -102,6 +104,8 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
           - --insecure
         volumeMounts:
           - name: workdir
@@ -117,6 +121,8 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
           - --insecure
         volumeMounts:
           - name: workdir
@@ -132,6 +138,8 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
           - --insecure
         volumeMounts:
           - name: workdir
@@ -147,6 +155,8 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
           - --insecure
         volumeMounts:
           - name: workdir
