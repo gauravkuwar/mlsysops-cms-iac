@@ -84,18 +84,10 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
-          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1"
 
     - name: kaniko-train
       container:
@@ -108,18 +100,10 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
-          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1"
 
     - name: kaniko-eval
       container:
@@ -132,18 +116,10 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
-          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1"
 
     - name: kaniko-data
       container:
@@ -156,15 +132,7 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
-          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1"
