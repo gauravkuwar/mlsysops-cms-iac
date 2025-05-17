@@ -11,6 +11,7 @@
     argo_namespace: argo
     templates:
       - mlops-pipeline.yaml
+      - data-pipeline.yaml
       # - build-container-image.yaml
       # - deploy-container-image.yaml
       # - promote-model.yaml

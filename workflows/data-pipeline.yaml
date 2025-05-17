@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: jigsaw-data-prep
+  namespace: argo
+spec:
+  entrypoint: preprocess
+  templates:
+    - name: preprocess
+      container:
+        image: registry.kube-system.svc.cluster.local:5000/jigsaw-prep:latest
+        command: ["python", "main.py"]
+        args:
+          - --kaggle-dir
+          - /mnt/data/kaggle
+          - --output-dir
+          - /mnt/data/preprocessed
+          - --val-split
+          - "0.1"
+          - --eval-split
+          - "0.01"
+        volumeMounts:
+          - name: data-volume
+            mountPath: /mnt/data
+          - name: kaggle-token
+            mountPath: /root/.kaggle
+            readOnly: true
+      volumes:
+        - name: data-volume
+          hostPath:
+            path: /mnt/chameleon-block/data
+            type: Directory
+        - name: kaggle-token
+          hostPath:
+            path: /mnt/chameleon-block/data/kaggle
+            type: Directory
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - node1-mlops-project26-gk2657
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
