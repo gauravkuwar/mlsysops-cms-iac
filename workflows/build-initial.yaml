@@ -85,6 +85,7 @@ spec:
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --cache-copy-layers
           - --insecure
+          - --snapshotMode=time
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
@@ -101,6 +102,7 @@ spec:
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --cache-copy-layers
           - --insecure
+          - --snapshotMode=time
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
@@ -117,6 +119,7 @@ spec:
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --cache-copy-layers
           - --insecure
+          - --snapshotMode=time
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
@@ -133,6 +136,7 @@ spec:
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --cache-copy-layers
           - --insecure
+          - --snapshotMode=time
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
