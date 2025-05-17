@@ -3,15 +3,18 @@ kind: Workflow
 metadata:
   name: mlops-pipeline
 spec:
-  entrypoint: train-eval-flow
+  entrypoint: mlops-dag
   templates:
 
-    - name: train-eval-flow
-      steps:
-        - - name: trigger-training
+    - name: mlops-dag
+      dag:
+        tasks:
+          - name: trigger-training
             template: call-train-api
-        - - name: run-eval
+
+          - name: run-eval
             template: eval-task
+            dependencies: [trigger-training]
 
     - name: call-train-api
       container:
