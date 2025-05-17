@@ -55,7 +55,7 @@ spec:
                   value: "{{steps.clone-pipeline-repo.outputs.parameters.train-sha}}"
         - - name: kaniko-build-train
             template: kaniko-train
-            when: "{{steps.check-app-image.outputs.parameters.exists}} == 'false'"
+            when: "{{steps.check-train-image.outputs.parameters.exists}} == 'false'"
             arguments:
               parameters:
                 - name: sha
@@ -71,7 +71,7 @@ spec:
                   value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
         - - name: kaniko-build-eval
             template: kaniko-eval
-            when: "{{steps.check-app-image.outputs.parameters.exists}} == 'false'"
+            when: "{{steps.check-eval-image.outputs.parameters.exists}} == 'false'"
             arguments:
               parameters:
                 - name: sha
