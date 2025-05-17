@@ -48,7 +48,11 @@ spec:
           - name: kaniko-build-data
             template: kaniko-data
             dependencies: [clone-pipeline-repo]
-                  
+          
+          - name: kaniko-build-optimize
+            template: kaniko-optimize
+            dependencies: [clone-pipeline-repo]
+
     - name: app-git-clone
       container:
         image: alpine/git
@@ -126,6 +130,21 @@ spec:
           - --dockerfile=/mnt/workspace/data/Dockerfile
           - --context=/mnt/workspace/data
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --insecure
+        volumeMounts:
+          - name: workdir
+            mountPath: /mnt/workspace
+
+    - name: kaniko-optimize
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace/optimize/Dockerfile
+          - --context=/mnt/workspace/optimize
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --insecure
