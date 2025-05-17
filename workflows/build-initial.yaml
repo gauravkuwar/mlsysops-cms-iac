@@ -34,7 +34,7 @@ spec:
           # Conditionally build (parallel)
           - name: kaniko-build-app
             template: kaniko-app
-            dependencies: [app-git-clone]
+            dependencies: [clone-app-repo]
 
           - name: kaniko-build-train
             template: kaniko-train
