@@ -88,6 +88,13 @@ spec:
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
 
     - name: kaniko-train
       container:
@@ -104,6 +111,14 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+
 
     - name: kaniko-eval
       container:
@@ -120,6 +135,13 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
 
     - name: kaniko-data
       container:
@@ -136,3 +158,10 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
