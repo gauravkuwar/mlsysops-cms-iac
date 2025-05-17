@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: mlops-pipeline-
+spec:
+  entrypoint: train-eval-flow
+  templates:
+
+    - name: train-eval-flow
+      steps:
+        - - name: trigger-training
+            template: call-train-api
+        - - name: run-eval
+            template: eval-task
+
+    - name: call-train-api
+      container:
+        image: curlimages/curl
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Triggering training endpoint..."
+            curl --fail --retry 5 --retry-connrefused -X POST http://mlsysops-cms-train.mlsysops-cms-platform.svc.cluster.local:9090/trigger-training
+
+    - name: eval-task
+      container:
+        image: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
