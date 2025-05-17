@@ -23,6 +23,7 @@ spec:
   templates:
     - name: kaniko-dag
       dag:
+        parallelism: 2
         tasks:
           # Clone repos (in parallel)
           - name: clone-app-repo

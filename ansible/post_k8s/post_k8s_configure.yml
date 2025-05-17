@@ -106,6 +106,13 @@
               env:
                 - name: REGISTRY_HTTP_ADDR
                   value: ":5000"
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "512Mi"
+                limits:
+                  cpu: "1"
+                  memory: "1Gi"
               volumeMounts:
                 - name: registry-storage
                   mountPath: /var/lib/registry
