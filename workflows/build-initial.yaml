@@ -76,7 +76,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=/mnt/workspace-app/Dockerfile
+          - --dockerfile=Dockerfile
           - --context=/mnt/workspace-app
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
@@ -97,7 +97,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=/mnt/workspace/train/Dockerfile
+          - --dockerfile=Dockerfile
           - --context=/mnt/workspace/train
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --cache=true
@@ -116,7 +116,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=/mnt/workspace/eval/Dockerfile
+          - --dockerfile=Dockerfile
           - --context=/mnt/workspace/eval
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --cache=true
@@ -135,7 +135,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=/mnt/workspace/data/Dockerfile
+          - --dockerfile=Dockerfile
           - --context=/mnt/workspace/data
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
@@ -154,7 +154,7 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=/mnt/workspace/optimize/Dockerfile
+          - --dockerfile=Dockerfile
           - --context=/mnt/workspace/optimize
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
           - --cache=true
