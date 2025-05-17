@@ -122,18 +122,18 @@ spec:
         parameters:
           - name: train-sha
             valueFrom:
-              path: /mnt/workspace/train/sha.txt
+              path: /mnt/workspace/train/train_sha.txt
           - name: eval-sha
             valueFrom:
-              path: /mnt/workspace/eval/sha.txt
+              path: /mnt/workspace/eval/eval_sha.txt
       container:
         image: alpine/git
         command: [sh, -c]
         args:
           - |
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-pipeline.git /mnt/workspace
-            cd /mnt/workspace/train && git log -n1 --pretty=format:%h > sha.txt
-            cd /mnt/workspace/eval && git log -n1 --pretty=format:%h > sha.txt
+            cd /mnt/workspace/train && git log -n1 --pretty=format:%h > train_sha.txt
+            cd /mnt/workspace/eval && git log -n1 --pretty=format:%h > eval_sha.txt
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
