@@ -93,12 +93,21 @@ spec:
         source: |
           IMAGE_URL="http://registry.kube-system.svc.cluster.local:5000/v2/{{inputs.parameters.image}}/manifests/{{inputs.parameters.sha}}"
           echo "Checking if image exists at $IMAGE_URL"
-          code=$(curl --insecure -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "$IMAGE_URL")
-          if [ "$code" -eq 200 ]; then
-            echo "true" > /tmp/image-exists.txt
-          else
-            echo "false" > /tmp/image-exists.txt
-          fi
+
+          for accept in \
+            "application/vnd.docker.distribution.manifest.v2+json" \
+            "application/vnd.oci.image.manifest.v1+json" \
+            "application/vnd.docker.distribution.manifest.list.v2+json" \
+            "application/vnd.oci.image.index.v1+json"
+          do
+            code=$(curl --insecure -s -o /dev/null -w "%{http_code}" -H "Accept: $accept" "$IMAGE_URL")
+            if [ "$code" -eq 200 ]; then
+              echo "true" > /tmp/image-exists.txt
+              exit 0
+            fi
+          done
+
+          echo "false" > /tmp/image-exists.txt
 
     - name: app-git-clone
       outputs:
