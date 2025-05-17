@@ -29,26 +29,76 @@ spec:
         - - name: clone-pipeline-repo
             template: pipeline-git-clone
 
+        - - name: check-app-image
+            template: check-image
+            arguments:
+              parameters:
+                - name: image
+                  value: "mlsysops-cms-app"
+                - name: sha
+                  value: "{{steps.clone-app-repo.outputs.parameters.sha}}"
         - - name: kaniko-build-app
             template: kaniko-app
+            when: "{{steps.check-app-image.outputs.parameters.exists}} == false"
             arguments:
               parameters:
                 - name: sha
                   value: "{{steps.clone-app-repo.outputs.parameters.sha}}"
 
+        - - name: check-train-image
+            template: check-image
+            arguments:
+              parameters:
+                - name: image
+                  value: "mlsysops-cms-train"
+                - name: sha
+                  value: "{{steps.clone-pipeline-repo.outputs.parameters.train-sha}}"
         - - name: kaniko-build-train
             template: kaniko-train
+            when: "{{steps.check-train-image.outputs.parameters.exists}} == false"
             arguments:
               parameters:
                 - name: sha
                   value: "{{steps.clone-pipeline-repo.outputs.parameters.train-sha}}"
 
+        - - name: check-eval-image
+            template: check-image
+            arguments:
+              parameters:
+                - name: image
+                  value: "mlsysops-cms-eval"
+                - name: sha
+                  value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
         - - name: kaniko-build-eval
             template: kaniko-eval
+            when: "{{steps.check-eval-image.outputs.parameters.exists}} == false"
             arguments:
               parameters:
                 - name: sha
                   value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
+                  
+    - name: check-image
+      inputs:
+        parameters:
+          - name: image
+          - name: sha
+      outputs:
+        parameters:
+          - name: exists
+            valueFrom:
+              path: /tmp/image-exists.txt
+      script:
+        image: curlimages/curl
+        command: [sh]
+        source: |
+          IMAGE_URL="http://registry.kube-system.svc.cluster.local:5000/v2/{{inputs.parameters.image}}/manifests/{{inputs.parameters.sha}}"
+          echo "Checking if image exists at $IMAGE_URL"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X HEAD "$IMAGE_URL")
+          if [ "$code" -eq 200 ]; then
+            echo "true" > /tmp/image-exists.txt
+          else
+            echo "false" > /tmp/image-exists.txt
+          fi
 
     - name: app-git-clone
       outputs:
