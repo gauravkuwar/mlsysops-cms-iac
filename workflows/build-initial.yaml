@@ -149,6 +149,7 @@ spec:
           - --dockerfile=/mnt/workspace-app/Dockerfile
           - --context=/mnt/workspace-app
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:{{inputs.parameters.sha}}
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:latest
           - --insecure
         volumeMounts:
           - name: workdir-app
@@ -165,6 +166,7 @@ spec:
           - --dockerfile=/mnt/workspace/train/Dockerfile
           - --context=/mnt/workspace/train
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:{{inputs.parameters.sha}}
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --insecure
         volumeMounts:
           - name: workdir
@@ -181,6 +183,7 @@ spec:
           - --dockerfile=/mnt/workspace/eval/Dockerfile
           - --context=/mnt/workspace/eval
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:{{inputs.parameters.sha}}
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --insecure
         volumeMounts:
           - name: workdir
