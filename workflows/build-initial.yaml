@@ -22,7 +22,7 @@ spec:
 
   templates:
     - name: kaniko-dag
-      parallelism: 2
+      parallelism: 4
       dag:
         tasks:
           # Clone repos (in parallel)
