@@ -3,7 +3,7 @@ kind: Workflow
 metadata:
   generateName: kaniko-pvc-build-
 spec:
-  entrypoint: kaniko-build-flow
+  entrypoint: kaniko-dag
   volumeClaimTemplates:
     - metadata:
         name: workdir
@@ -21,77 +21,93 @@ spec:
             storage: 1Gi
 
   templates:
-
-    - name: kaniko-build-flow
-      steps:
-        - - name: clone-app-repo
+    - name: kaniko-dag
+      dag:
+        tasks:
+          # Clone repos (in parallel)
+          - name: clone-app-repo
             template: app-git-clone
-        - - name: clone-pipeline-repo
+
+          - name: clone-pipeline-repo
             template: pipeline-git-clone
 
-        - - name: check-app-image
+          # Check images (parallel, depends on clones)
+          - name: check-app-image
             template: check-image
+            dependencies: [clone-app-repo]
             arguments:
               parameters:
                 - name: image
                   value: "mlsysops-cms-app"
                 - name: sha
-                  value: "{{steps.clone-app-repo.outputs.parameters.sha}}"
-        - - name: kaniko-build-app
-            template: kaniko-app
-            when: "{{steps.check-app-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{steps.clone-app-repo.outputs.parameters.sha}}"
+                  value: "{{tasks.clone-app-repo.outputs.parameters.sha}}"
 
-        - - name: check-train-image
+          - name: check-train-image
             template: check-image
+            dependencies: [clone-pipeline-repo]
             arguments:
               parameters:
                 - name: image
                   value: "mlsysops-cms-train"
                 - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.train-sha}}"
-        - - name: kaniko-build-train
-            template: kaniko-train
-            when: "{{steps.check-train-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.train-sha}}"
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.train-sha}}"
 
-        - - name: check-eval-image
+          - name: check-eval-image
             template: check-image
+            dependencies: [clone-pipeline-repo]
             arguments:
               parameters:
                 - name: image
                   value: "mlsysops-cms-eval"
                 - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
-        - - name: kaniko-build-eval
-            template: kaniko-eval
-            when: "{{steps.check-eval-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.eval-sha}}"
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.eval-sha}}"
 
-        - - name: check-data-image
+          - name: check-data-image
             template: check-image
+            dependencies: [clone-pipeline-repo]
             arguments:
               parameters:
                 - name: image
                   value: "mlsysops-cms-data"
                 - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.data-sha}}"
-        - - name: kaniko-build-data
-            template: kaniko-data
-            when: "{{steps.check-data-image.outputs.parameters.exists}} == false"
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
+
+          # Conditionally build (parallel)
+          - name: kaniko-build-app
+            template: kaniko-app
+            dependencies: [check-app-image]
+            when: "{{tasks.check-app-image.outputs.parameters.exists}} == false"
             arguments:
               parameters:
                 - name: sha
-                  value: "{{steps.clone-pipeline-repo.outputs.parameters.data-sha}}"
+                  value: "{{tasks.clone-app-repo.outputs.parameters.sha}}"
+
+          - name: kaniko-build-train
+            template: kaniko-train
+            dependencies: [check-train-image]
+            when: "{{tasks.check-train-image.outputs.parameters.exists}} == false"
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.train-sha}}"
+
+          - name: kaniko-build-eval
+            template: kaniko-eval
+            dependencies: [check-eval-image]
+            when: "{{tasks.check-eval-image.outputs.parameters.exists}} == false"
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.eval-sha}}"
+
+          - name: kaniko-build-data
+            template: kaniko-data
+            dependencies: [check-data-image]
+            when: "{{tasks.check-data-image.outputs.parameters.exists}} == false"
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
                   
     - name: check-image
       inputs:
