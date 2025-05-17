@@ -62,15 +62,15 @@ spec:
                 - name: sha
                   value: "{{tasks.clone-pipeline-repo.outputs.parameters.eval-sha}}"
 
-          - name: check-data-image
-            template: check-image
-            dependencies: [clone-pipeline-repo]
-            arguments:
-              parameters:
-                - name: image
-                  value: "mlsysops-cms-data"
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
+          # - name: check-data-image
+          #   template: check-image
+          #   dependencies: [clone-pipeline-repo]
+          #   arguments:
+          #     parameters:
+          #       - name: image
+          #         value: "mlsysops-cms-data"
+          #       - name: sha
+          #         value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
 
           # Conditionally build (parallel)
           - name: kaniko-build-app
@@ -102,8 +102,8 @@ spec:
 
           - name: kaniko-build-data
             template: kaniko-data
-            dependencies: [check-data-image]
-            when: "{{tasks.check-data-image.outputs.parameters.exists}} == false"
+            dependencies: [clone-pipeline-repo]
+            # when: "{{tasks.check-data-image.outputs.parameters.exists}} == false"
             arguments:
               parameters:
                 - name: sha
@@ -246,8 +246,11 @@ spec:
         args:
           - --dockerfile=/mnt/workspace/data/Dockerfile
           - --context=/mnt/workspace/data
-          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:{{inputs.parameters.sha}}
+          # - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
