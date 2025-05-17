@@ -31,6 +31,13 @@ spec:
         env:
           - name: MLFLOW_TRACKING_URI
             value: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "3Gi"
+            cpu: "2000m"
         volumeMounts:
           - name: data-volume
             mountPath: /mnt/data
