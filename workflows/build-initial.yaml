@@ -31,222 +31,102 @@ spec:
           - name: clone-pipeline-repo
             template: pipeline-git-clone
 
-          # Check images (parallel, depends on clones)
-          - name: check-app-image
-            template: check-image
-            dependencies: [clone-app-repo]
-            arguments:
-              parameters:
-                - name: image
-                  value: "mlsysops-cms-app"
-                - name: sha
-                  value: "{{tasks.clone-app-repo.outputs.parameters.sha}}"
-
-          - name: check-train-image
-            template: check-image
-            dependencies: [clone-pipeline-repo]
-            arguments:
-              parameters:
-                - name: image
-                  value: "mlsysops-cms-train"
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.train-sha}}"
-
-          - name: check-eval-image
-            template: check-image
-            dependencies: [clone-pipeline-repo]
-            arguments:
-              parameters:
-                - name: image
-                  value: "mlsysops-cms-eval"
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.eval-sha}}"
-
-          # - name: check-data-image
-          #   template: check-image
-          #   dependencies: [clone-pipeline-repo]
-          #   arguments:
-          #     parameters:
-          #       - name: image
-          #         value: "mlsysops-cms-data"
-          #       - name: sha
-          #         value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
-
           # Conditionally build (parallel)
           - name: kaniko-build-app
             template: kaniko-app
-            dependencies: [check-app-image]
-            when: "{{tasks.check-app-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{tasks.clone-app-repo.outputs.parameters.sha}}"
+            dependencies: [app-git-clone]
 
           - name: kaniko-build-train
             template: kaniko-train
-            dependencies: [check-train-image]
-            when: "{{tasks.check-train-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.train-sha}}"
+            dependencies: [clone-pipeline-repo]
 
           - name: kaniko-build-eval
             template: kaniko-eval
-            dependencies: [check-eval-image]
-            when: "{{tasks.check-eval-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.eval-sha}}"
+            dependencies: [clone-pipeline-repo]
 
           - name: kaniko-build-data
             template: kaniko-data
             dependencies: [clone-pipeline-repo]
-            # when: "{{tasks.check-data-image.outputs.parameters.exists}} == false"
-            arguments:
-              parameters:
-                - name: sha
-                  value: "{{tasks.clone-pipeline-repo.outputs.parameters.data-sha}}"
                   
-    - name: check-image
-      inputs:
-        parameters:
-          - name: image
-          - name: sha
-      outputs:
-        parameters:
-          - name: exists
-            valueFrom:
-              path: /tmp/image-exists.txt
-      script:
-        image: curlimages/curl
-        command: [sh]
-        source: |
-          IMAGE_URL="http://registry.kube-system.svc.cluster.local:5000/v2/{{inputs.parameters.image}}/manifests/{{inputs.parameters.sha}}"
-          echo "Checking if image exists at $IMAGE_URL"
-
-          for accept in \
-            "application/vnd.docker.distribution.manifest.v2+json" \
-            "application/vnd.oci.image.manifest.v1+json" \
-            "application/vnd.docker.distribution.manifest.list.v2+json" \
-            "application/vnd.oci.image.index.v1+json"
-          do
-            code=$(curl --insecure -s -o /dev/null -w "%{http_code}" -H "Accept: $accept" "$IMAGE_URL")
-            if [ "$code" -eq 200 ]; then
-              echo "true" > /tmp/image-exists.txt
-              exit 0
-            fi
-          done
-
-          echo "false" > /tmp/image-exists.txt
-
     - name: app-git-clone
-      outputs:
-        parameters:
-          - name: sha
-            valueFrom:
-              path: /mnt/workspace-app/sha.txt
       container:
         image: alpine/git
         command: [sh, -c]
         args:
           - |
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-app.git /mnt/workspace-app
-            cd /mnt/workspace-app && git rev-parse --short HEAD > sha.txt
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
 
     - name: pipeline-git-clone
-      outputs:
-        parameters:
-          - name: train-sha
-            valueFrom:
-              path: /mnt/workspace/train/train_sha.txt
-          - name: eval-sha
-            valueFrom:
-              path: /mnt/workspace/eval/eval_sha.txt
-          - name: data-sha
-            valueFrom:
-              path: /mnt/workspace/data/data_sha.txt
       container:
         image: alpine/git
         command: [sh, -c]
         args:
           - |
             git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-pipeline.git /mnt/workspace
-            cd /mnt/workspace/train && git log -n1 --pretty=format:%h . > train_sha.txt
-            cd /mnt/workspace/eval && git log -n1 --pretty=format:%h . > eval_sha.txt
-            cd /mnt/workspace/data && git log -n1 --pretty=format:%h . > data_sha.txt
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
 
     - name: kaniko-app
-      inputs:
-        parameters:
-          - name: sha
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
           - --dockerfile=/mnt/workspace-app/Dockerfile
           - --context=/mnt/workspace-app
-          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
 
     - name: kaniko-train
-      inputs:
-        parameters:
-          - name: sha
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
           - --dockerfile=/mnt/workspace/train/Dockerfile
           - --context=/mnt/workspace/train
-          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
 
     - name: kaniko-eval
-      inputs:
-        parameters:
-          - name: sha
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
           - --dockerfile=/mnt/workspace/eval/Dockerfile
           - --context=/mnt/workspace/eval
-          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
           - --insecure
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
 
     - name: kaniko-data
-      inputs:
-        parameters:
-          - name: sha
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
           - --dockerfile=/mnt/workspace/data/Dockerfile
           - --context=/mnt/workspace/data
-          # - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:{{inputs.parameters.sha}}
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
