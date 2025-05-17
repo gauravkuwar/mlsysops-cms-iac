@@ -5,126 +5,153 @@ metadata:
 spec:
   entrypoint: kaniko-build-flow
   volumeClaimTemplates:
-  - metadata:
-      name: workdir
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
-
-  - metadata:
-      name: workdir-train
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 1Gi
-
-  - metadata:
-      name: workdir-eval
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 1Gi
+    - metadata:
+        name: workdir
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: workdir-train
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: workdir-eval
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 
   templates:
-  - name: kaniko-build-flow
-    steps:
-      - - name: clone-repo
-          template: git-clone
-      - - name: kaniko-build
-          template: kaniko
-      - - name: clone-train-repo
-          template: train-git-clone
-      - - name: kaniko-train-build
-          template: kaniko-train
-      - - name: clone-eval-repo
-          template: eval-git-clone
-      - - name: kaniko-eval-build
-          template: kaniko-eval
 
-  - name: git-clone
-    container:
-      image: alpine/git
-      command: [sh, -c]
-      args:
-        - |
-          git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-app.git /mnt/workspace
-          cd /mnt/workspace
-          git rev-parse --short HEAD > sha.txt
-      volumeMounts:
-        - name: workdir
-          mountPath: /mnt/workspace
+    - name: kaniko-build-flow
+      steps:
+        - - name: clone-repo
+            template: git-clone
+        - - name: clone-train-repo
+            template: train-git-clone
+        - - name: clone-eval-repo
+            template: eval-git-clone
 
-  - name: kaniko
-    script:
-      image: gcr.io/kaniko-project/executor:latest
-      command: [sh]
-      source: |
-        TAG=$(cat /mnt/workspace/sha.txt)
-        /kaniko/executor \
-          --dockerfile=/mnt/workspace/Dockerfile \
-          --context=/mnt/workspace \
-          --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:$TAG \
-          --insecure
-      volumeMounts:
-        - name: workdir
-          mountPath: /mnt/workspace
+        - - name: kaniko-build
+            template: kaniko
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{steps.clone-repo.outputs.parameters.sha}}"
+        - - name: kaniko-train-build
+            template: kaniko-train
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{steps.clone-train-repo.outputs.parameters.sha}}"
+        - - name: kaniko-eval-build
+            template: kaniko-eval
+            arguments:
+              parameters:
+                - name: sha
+                  value: "{{steps.clone-eval-repo.outputs.parameters.sha}}"
 
-  - name: train-git-clone
-    container:
-      image: alpine/git
-      command: [sh, -c]
-      args:
-        - |
-          git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-train.git /mnt/workspace-train
-          cd /mnt/workspace-train
-          git rev-parse --short HEAD > sha.txt
-      volumeMounts:
-        - name: workdir-train
-          mountPath: /mnt/workspace-train
+    - name: git-clone
+      outputs:
+        parameters:
+          - name: sha
+            valueFrom:
+              path: /mnt/workspace/sha.txt
+      container:
+        image: alpine/git
+        command: [sh, -c]
+        args:
+          - |
+            git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-app.git /mnt/workspace
+            cd /mnt/workspace && git rev-parse --short HEAD > sha.txt
+        volumeMounts:
+          - name: workdir
+            mountPath: /mnt/workspace
 
-  - name: kaniko-train
-    script:
-      image: gcr.io/kaniko-project/executor:latest
-      command: [sh]
-      source: |
-        TAG=$(cat /mnt/workspace-train/sha.txt)
-        /kaniko/executor \
-          --dockerfile=/mnt/workspace-train/Dockerfile \
-          --context=/mnt/workspace-train \
-          --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:$TAG \
-          --insecure
-      volumeMounts:
-        - name: workdir-train
-          mountPath: /mnt/workspace-train
+    - name: train-git-clone
+      outputs:
+        parameters:
+          - name: sha
+            valueFrom:
+              path: /mnt/workspace-train/sha.txt
+      container:
+        image: alpine/git
+        command: [sh, -c]
+        args:
+          - |
+            git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-train.git /mnt/workspace-train
+            cd /mnt/workspace-train && git rev-parse --short HEAD > sha.txt
+        volumeMounts:
+          - name: workdir-train
+            mountPath: /mnt/workspace-train
 
-  - name: eval-git-clone
-    container:
-      image: alpine/git
-      command: [sh, -c]
-      args:
-        - |
-          git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-eval.git /mnt/workspace-eval
-          cd /mnt/workspace-eval
-          git rev-parse --short HEAD > sha.txt
-      volumeMounts:
-        - name: workdir-eval
-          mountPath: /mnt/workspace-eval
+    - name: eval-git-clone
+      outputs:
+        parameters:
+          - name: sha
+            valueFrom:
+              path: /mnt/workspace-eval/sha.txt
+      container:
+        image: alpine/git
+        command: [sh, -c]
+        args:
+          - |
+            git clone --branch main https://github.com/gauravkuwar/mlsysops-cms-eval.git /mnt/workspace-eval
+            cd /mnt/workspace-eval && git rev-parse --short HEAD > sha.txt
+        volumeMounts:
+          - name: workdir-eval
+            mountPath: /mnt/workspace-eval
 
-  - name: kaniko-eval
-    script:
-      image: gcr.io/kaniko-project/executor:latest
-      command: [sh]
-      source: |
-        TAG=$(cat /mnt/workspace-eval/sha.txt)
-        /kaniko/executor \
-          --dockerfile=/mnt/workspace-eval/Dockerfile \
-          --context=/mnt/workspace-eval \
-          --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:$TAG \
-          --insecure
-      volumeMounts:
-        - name: workdir-eval
-          mountPath: /mnt/workspace-eval
+    - name: kaniko
+      inputs:
+        parameters:
+          - name: sha
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace/Dockerfile
+          - --context=/mnt/workspace
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:{{inputs.parameters.sha}}
+          - --insecure
+        volumeMounts:
+          - name: workdir
+            mountPath: /mnt/workspace
+
+    - name: kaniko-train
+      inputs:
+        parameters:
+          - name: sha
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace-train/Dockerfile
+          - --context=/mnt/workspace-train
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:{{inputs.parameters.sha}}
+          - --insecure
+        volumeMounts:
+          - name: workdir-train
+            mountPath: /mnt/workspace-train
+
+    - name: kaniko-eval
+      inputs:
+        parameters:
+          - name: sha
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace-eval/Dockerfile
+          - --context=/mnt/workspace-eval
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:{{inputs.parameters.sha}}
+          - --insecure
+        volumeMounts:
+          - name: workdir-eval
+            mountPath: /mnt/workspace-eval
