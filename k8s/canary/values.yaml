@@ -13,10 +13,10 @@ env:
   mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
 
 resources:
-  limits:
-    cpu: "500m"
-    memory: "256Mi"
   requests:
-    cpu: "200m"
-    memory: "128Mi"
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1"
+    memory: "1.5Gi"
 
