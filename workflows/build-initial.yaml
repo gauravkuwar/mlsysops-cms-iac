@@ -22,7 +22,7 @@ spec:
 
   templates:
     - name: kaniko-dag
-      parallelism: 2
+      parallelism: 1
       dag:
         tasks:
           # Clone repos (in parallel)
@@ -81,19 +81,12 @@ spec:
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:canary-latest
-          # - --cache=true
-          # - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --insecure
         volumeMounts:
           - name: workdir-app
             mountPath: /mnt/workspace-app
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
 
     - name: kaniko-train
       container:
@@ -109,14 +102,6 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
-
 
     - name: kaniko-eval
       container:
@@ -132,13 +117,6 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
 
     - name: kaniko-data
       container:
@@ -154,10 +132,3 @@ spec:
         volumeMounts:
           - name: workdir
             mountPath: /mnt/workspace
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
