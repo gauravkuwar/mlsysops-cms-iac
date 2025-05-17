@@ -8,6 +8,10 @@ service:
   port: 8080
   externalIP: ""   # Placeholder
 
+env:
+  modelStage: canary
+  mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+
 resources:
   limits:
     cpu: "500m"
