@@ -9,7 +9,7 @@ service:
   externalIP: ""   # Placeholder
 
 env:
-  modelStage: development
+  modelStage: staging
   mlflowTrackingUri: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
 
 resources:
