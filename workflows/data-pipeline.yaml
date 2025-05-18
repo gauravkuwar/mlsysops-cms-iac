@@ -25,7 +25,7 @@ spec:
           - --val-split
           - "0.1"
           - --eval-split
-          - "0.01"
+          - "0.0001"
         env:
           - name: PYTHONUNBUFFERED
             value: "1"
