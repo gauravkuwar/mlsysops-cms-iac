@@ -71,3 +71,32 @@ spec:
           - name: MLFLOW_TRACKING_URI
             value: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
 
+    - name: loadtest-task
+      container:
+        image: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-loadtest:latest
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: http://mlflow.mlsysops-cms-platform.svc.cluster.local:8000
+          - name: MODEL_NAME
+            value: mlsysops-cms-model
+          - name: MODEL_STAGE
+            value: staging
+          - name: APP_URL
+            value: http://mlsysops-cms-app.mlsysops-cms-platform.svc.cluster.local:8000
+          - name: CONCURRENCY
+            value: "50"
+          - name: DURATION
+            value: "30"
+          - name: P95_LATENCY_THRESHOLD
+            value: "0.5"
+          - name: SUCCESS_RATE_THRESHOLD
+            value: "0.99"
+          - name: THROUGHPUT_THRESHOLD
+            value: "20"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
