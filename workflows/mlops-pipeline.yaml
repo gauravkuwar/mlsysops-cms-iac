@@ -20,6 +20,10 @@ spec:
             template: optimize-task
             dependencies: [run-eval]
 
+          - name: run-loadtest
+            template: loadtest-task
+            dependencies: [run-optimize]
+            
     - name: call-train-api
       container:
         image: curlimages/curl
