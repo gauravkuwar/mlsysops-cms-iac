@@ -9,7 +9,7 @@ train:
 
   image:
     repository: registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train
-    tag: latest
+    tag: staging
 
   service:
     port: 9090
