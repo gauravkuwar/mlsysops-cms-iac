@@ -22,7 +22,6 @@ spec:
 
   templates:
     - name: kaniko-dag
-      parallelism: 8
       dag:
         tasks:
           # Clone repos (in parallel)
@@ -51,6 +50,10 @@ spec:
           
           - name: kaniko-build-optimize
             template: kaniko-optimize
+            dependencies: [clone-pipeline-repo]
+
+          - name: kaniko-build-loadtest
+            template: kaniko-loadtest
             dependencies: [clone-pipeline-repo]
 
     - name: app-git-clone
@@ -153,6 +156,23 @@ spec:
           - --dockerfile=/mnt/workspace/optimize/Dockerfile
           - --context=/mnt/workspace/optimize
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
+          - --cache=true
+          - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
+          - --cache-copy-layers
+          - --compressed-caching
+          - --insecure
+        volumeMounts:
+          - name: workdir
+            mountPath: /mnt/workspace
+
+    - name: kaniko-loadtest
+      container:
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["/kaniko/executor"]
+        args:
+          - --dockerfile=/mnt/workspace/loadtest/Dockerfile
+          - --context=/mnt/workspace/loadtest
+          - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-loadtest:latest
           - --cache=true
           - --cache-repo=registry.kube-system.svc.cluster.local:5000/kaniko-cache
           - --cache-copy-layers
