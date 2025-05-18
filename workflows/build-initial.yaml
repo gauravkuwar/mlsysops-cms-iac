@@ -4,11 +4,21 @@ metadata:
   generateName: kaniko-pvc-build-
 spec:
   entrypoint: kaniko-dag
-  volumes:
-    - name: workdir
-      emptyDir: {}
-    - name: workdir-app
-      emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: workdir
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+    - metadata:
+        name: workdir-app
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
 
   templates:
     - name: kaniko-dag
@@ -44,8 +54,6 @@ spec:
             dependencies: [clone-pipeline-repo]
 
     - name: app-git-clone
-      nodeSelector:
-        kubernetes.io/hostname: node2-mlops-project26-gk2657
       container:
         image: alpine/git
         command: [sh, -c]
@@ -57,8 +65,6 @@ spec:
             mountPath: /mnt/workspace-app
 
     - name: pipeline-git-clone
-      nodeSelector:
-        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: alpine/git
         command: [sh, -c]
@@ -70,13 +76,11 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-app
-      nodeSelector:
-        kubernetes.io/hostname: node2-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=Dockerfile
+          - --dockerfile=/mnt/workspace-app/Dockerfile
           - --context=/mnt/workspace-app
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:production-latest
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-app:staging-latest
@@ -91,13 +95,11 @@ spec:
             mountPath: /mnt/workspace-app
 
     - name: kaniko-train
-      nodeSelector:
-        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=Dockerfile
+          - --dockerfile=/mnt/workspace/train/Dockerfile
           - --context=/mnt/workspace/train
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-train:latest
           - --cache=true
@@ -110,13 +112,11 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-eval
-      nodeSelector:
-          kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=Dockerfile
+          - --dockerfile=/mnt/workspace/eval/Dockerfile
           - --context=/mnt/workspace/eval
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-eval:latest
           - --cache=true
@@ -129,13 +129,11 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-data
-      nodeSelector:
-          kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=Dockerfile
+          - --dockerfile=/mnt/workspace/data/Dockerfile
           - --context=/mnt/workspace/data
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-data:latest
           - --cache=true
@@ -148,13 +146,11 @@ spec:
             mountPath: /mnt/workspace
 
     - name: kaniko-optimize
-      nodeSelector:
-        kubernetes.io/hostname: node3-mlops-project26-gk2657
       container:
         image: gcr.io/kaniko-project/executor:latest
         command: ["/kaniko/executor"]
         args:
-          - --dockerfile=Dockerfile
+          - --dockerfile=/mnt/workspace/optimize/Dockerfile
           - --context=/mnt/workspace/optimize
           - --destination=registry.kube-system.svc.cluster.local:5000/mlsysops-cms-optimize:latest
           - --cache=true
