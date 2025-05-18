@@ -23,7 +23,7 @@ spec:
           - name: run-loadtest
             template: loadtest-task
             dependencies: [run-optimize]
-            
+
     - name: call-train-api
       container:
         image: curlimages/curl
@@ -86,7 +86,7 @@ spec:
           - name: MODEL_STAGE
             value: staging
           - name: APP_URL
-            value: http://mlsysops-cms-app.mlsysops-cms-platform.svc.cluster.local:8000
+            value: http://mlsysops-cms-app.mlsysops-cms-staging.svc.cluster.local:8081
           - name: CONCURRENCY
             value: "50"
           - name: DURATION
